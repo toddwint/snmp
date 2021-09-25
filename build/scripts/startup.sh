@@ -59,6 +59,8 @@ then
     echo "authUser log,execute,net $SNMPUSER5USRNAME" >> /etc/snmp/snmptrapd.conf
 fi
 
+service snmpd start
+service snmpd status
 snmptrapd -ALf /var/log/snmp/snmptrapd.log
 frontail -d -p $HTTPPORT /var/log/snmp/snmptrapd.log
 
