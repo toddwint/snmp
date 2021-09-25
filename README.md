@@ -1,4 +1,4 @@
-# toddwint/rsc
+# toddwint/snmp
 
 ## Info
 
