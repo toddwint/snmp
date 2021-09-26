@@ -19,7 +19,7 @@ This image was created for lab setups where the need to verify snmp messages are
     - pause the flow
     - search through the flow
     - highlight multiple rows
-- Snmp messages are persistant if you map the directory `/var/log/snmp `
+- Snmp messages are persistent if you map the directory `/var/log/snmp `
 
 
 ## Sample `config.txt` file
