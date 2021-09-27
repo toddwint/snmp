@@ -6,7 +6,7 @@
 
 <https://github.com/toddwint/snmp>
 
-SNMP server docker image for simple lab syslog testing.
+SNMP server docker image for simple lab SNMP testing.
 
 This image was created for lab setups where the need to verify snmp messages are being sent to a customer owned snmp server.
 
