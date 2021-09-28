@@ -78,6 +78,7 @@ docker run -dit --rm \
     -p $IPADDR:$HTTPPORT:$HTTPPORT \
     -v snmp:/var/log/snmp \
     -e TZ=$TZ \
+    -e HTTPPORT=$HTTPPORT \
     -e HOSTNAME=$HOSTNAME \
     -e SNMPUSER1ENGINID=$SNMPUSER1ENGINID \
     -e SNMPUSER1USRNAME=$SNMPUSER1USRNAME \
