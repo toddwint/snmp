@@ -4,6 +4,12 @@
 ln -fs /usr/share/zoneinfo/$TZ /etc/localtime
 dpkg-reconfigure --frontend noninteractive tzdata
 
+echo $HOSTNAME > /etc/hostname
+
+sed -ri "s/^(mibs *:).*/#\1/" /etc/snmp/snmp.conf 
+sed -ri "s/^(agentaddress).*/\1  0.0.0.0,[::]/" /etc/snmp/snmpd.conf 
+sed -ri "s/^#(authCommunity.*public.*)/\1/" /etc/snmp/snmptrapd.conf 
+
 # SNMPUSER1
 if [ -n "$SNMPUSER1USRNAME" ] && [ -n "$SNMPUSER1ENGINID" ]
 then
@@ -59,9 +65,12 @@ then
     echo "authUser log,execute,net $SNMPUSER5USRNAME" >> /etc/snmp/snmptrapd.conf
 fi
 
+service snmpd stop
 service snmpd start
 service snmpd status
+
 snmptrapd -ALf /var/log/snmp/snmptrapd.log
+
 frontail -d -p $HTTPPORT /var/log/snmp/snmptrapd.log
 
 # Keep docker running

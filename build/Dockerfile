@@ -4,6 +4,7 @@ EXPOSE 162/udp 162/tcp 161/udp 161/tcp 9001
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     HTTPPORT=9001 \
+    HOSTNAME=snmpsrvr \
     SNMPUSER1ENGINID=0x0102030405 \
     SNMPUSER1USRNAME=user1 \
     SNMPUSER1AUTHALG=SHA \
@@ -40,33 +41,26 @@ RUN apt-get update \
     tzdata \
     iproute2 \
     wget \
-    snmp \
-    snmptrapd \
-    libsnmp-dev \
+    curl \
     snmp-mibs-downloader \
+    snmptrapd \
+    snmp \
+    libsnmp-dev \
     && \
-    mkdir -p /opt/snmp/data \
+    download-mibs \
+    && \
+    echo $HOSTNAME > /etc/hostname \
     && \
     wget -q https://github.com/mthenw/frontail/releases/download/v4.9.1/frontail-linux -O /usr/local/bin/frontail \
     && \
     chmod 755 /usr/local/bin/frontail \
     && \
-    download-mibs \
-    && \
-    download-mibs \
-    && \
-    sed -i "s/^\(mibs *:\).*/#\1/" /etc/snmp/snmp.conf \
-    && \
-    sed -i "s/#\(authCommunity.*public.*\)/\1/" /etc/snmp/snmptrapd.conf \
-    && \
-    sed -i "s/^\(agentaddress\).*/\1  0.0.0.0,[::]/" /etc/snmp/snmpd.conf \
-    && \
     mkdir /var/log/snmp \
-#    && \
-#    apt-get remove -y \
-#    wget \
-#    && \
-#    apt-get autoremove -y \
+    && \
+    apt-get remove -y \
+    curl \
+    && \
+    apt-get autoremove -y \
     && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/snmp/

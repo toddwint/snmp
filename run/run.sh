@@ -4,6 +4,7 @@ cp template/webadmin.html.template webadmin.html
 sed -i "s/IPADDR/$IPADDR:$HTTPPORT/g" webadmin.html
 docker run -dit --rm \
     --name snmp \
+    -h $HOSTNAME \
     -p $IPADDR:161:161/udp \
     -p $IPADDR:161:161/tcp \
     -p $IPADDR:162:162/udp \
@@ -11,6 +12,7 @@ docker run -dit --rm \
     -p $IPADDR:$HTTPPORT:$HTTPPORT \
     -v snmp:/var/log/snmp \
     -e TZ=$TZ \
+    -e HOSTNAME=$HOSTNAME \
     -e SNMPUSER1ENGINID=$SNMPUSER1ENGINID \
     -e SNMPUSER1USRNAME=$SNMPUSER1USRNAME \
     -e SNMPUSER1AUTHALG=$SNMPUSER1AUTHALG \

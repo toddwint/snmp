@@ -8,18 +8,18 @@
 
 SNMP server docker image for simple lab SNMP testing.
 
-This image was created for lab setups where the need to verify snmp messages are being sent to a customer owned snmp server.
+This image was created for lab setups where the need to verify SNMP messages are being sent to a customer owned SNMP server.
 
 
 ## Features
 
-- Receive snmp messages from clients.
-- View remote snmp messages in a web browser ([frontail](https://github.com/mthenw/frontail))
+- Receive SNMP messages from clients.
+- View remote SNMP messages in a web browser ([frontail](https://github.com/mthenw/frontail))
     - tail the file
     - pause the flow
     - search through the flow
     - highlight multiple rows
-- Snmp messages are persistent if you map the directory `/var/log/snmp `
+- SNMP messages are persistent if you map the directory `/var/log/snmp `
 
 
 ## Sample `config.txt` file
@@ -28,6 +28,7 @@ This image was created for lab setups where the need to verify snmp messages are
 TZ=UTC
 IPADDR=127.0.0.1
 HTTPPORT=9001
+HOSTNAME=snmpsrvr
 SNMPUSER1ENGINID=0x0102030405
 SNMPUSER1USRNAME=user1
 SNMPUSER1AUTHALG=SHA
@@ -69,6 +70,7 @@ cp template/webadmin.html.template webadmin.html
 sed -i "s/IPADDR/$IPADDR:$HTTPPORT/g" webadmin.html
 docker run -dit --rm \
     --name snmp \
+    -h $HOSTNAME \
     -p $IPADDR:161:161/udp \
     -p $IPADDR:161:161/tcp \
     -p $IPADDR:162:162/udp \
@@ -76,6 +78,7 @@ docker run -dit --rm \
     -p $IPADDR:$HTTPPORT:$HTTPPORT \
     -v snmp:/var/log/snmp \
     -e TZ=$TZ \
+    -e HOSTNAME=$HOSTNAME \
     -e SNMPUSER1ENGINID=$SNMPUSER1ENGINID \
     -e SNMPUSER1USRNAME=$SNMPUSER1USRNAME \
     -e SNMPUSER1AUTHALG=$SNMPUSER1AUTHALG \
@@ -119,7 +122,8 @@ See my github page (referenced above).
 
 Open the `webadmin.html` file.
 
-Or just type in your browser `http://localhost` or the IP you set in the config.  
+Or just type in your browser `http://<ip_address>:<port>`
+
 
 ## Issues?
 
