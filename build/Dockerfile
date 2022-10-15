@@ -1,10 +1,7 @@
-FROM ubuntu:focal
+FROM toddwint/mybaseimage
 COPY scripts /opt/snmp/scripts
-EXPOSE 162/udp 162/tcp 161/udp 161/tcp 9001
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
-    HTTPPORT=9001 \
-    HOSTNAME=snmpsrvr \
     SNMPUSER1ENGINID=0x0102030405 \
     SNMPUSER1USRNAME=user1 \
     SNMPUSER1AUTHALG=SHA \
@@ -34,14 +31,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SNMPUSER5AUTHALG=SHA \
     SNMPUSER5AUTHPHR=authphrase5 \
     SNMPUSER5PRIVALG=AES \
-    SNMPUSER5PRIVPHR=privacyphrase5 
+    SNMPUSER5PRIVPHR=privacyphrase5 \
+    HTTPPORT1=8080 \
+    HTTPPORT2=8081 \
+    HTTPPORT3=8082 \
+    HTTPPORT4=8083 \
+    HOSTNAME=snmpsrvr \
+    APPNAME=snmp
 RUN apt-get update \
     && \
     apt-get install -y \
-    tzdata \
-    iproute2 \
-    wget \
-    curl \
     snmp-mibs-downloader \
     snmptrapd \
     snmp \
@@ -51,17 +50,14 @@ RUN apt-get update \
     && \
     echo $HOSTNAME > /etc/hostname \
     && \
-    wget -q https://github.com/mthenw/frontail/releases/download/v4.9.1/frontail-linux -O /usr/local/bin/frontail \
-    && \
-    chmod 755 /usr/local/bin/frontail \
-    && \
     mkdir /var/log/snmp \
     && \
-    apt-get remove -y \
-    curl \
+    cd /opt \
+    && \
+    rm -rf /opt/mybaseimage \
     && \
     apt-get autoremove -y \
     && \
     rm -rf /var/lib/apt/lists/*
-WORKDIR /opt/snmp/
+WORKDIR /opt/snmp/scripts
 CMD ["/opt/snmp/scripts/startup.sh"]

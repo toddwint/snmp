@@ -6,10 +6,15 @@ dpkg-reconfigure --frontend noninteractive tzdata
 
 echo $HOSTNAME > /etc/hostname
 
-sed -ri "s/^(mibs *:).*/#\1/" /etc/snmp/snmp.conf 
-sed -ri "s/^(agentaddress).*/\1  0.0.0.0,[::]/" /etc/snmp/snmpd.conf 
-sed -ri "s/^#(authCommunity.*public.*)/\1/" /etc/snmp/snmptrapd.conf 
-sed -ri '$a[snmp] logOption f /var/log/snmp/snmptrapd.log' /etc/snmp/snmptrapd.conf
+# Unzip frontail and tailon
+gunzip /usr/local/bin/frontail.gz
+gunzip /usr/local/bin/tailon.gz
+
+# Configure snmp
+sed -Ei "s/^(mibs *:).*/#\1/" /etc/snmp/snmp.conf 
+sed -Ei "s/^(agentaddress).*/\1  0.0.0.0,[::]/" /etc/snmp/snmpd.conf 
+sed -Ei "s/^#(authCommunity.*public.*)/\1/" /etc/snmp/snmptrapd.conf 
+sed -Ei '$a[snmp] logOption f /var/log/snmp/snmptrapd.log' /etc/snmp/snmptrapd.conf
 
 # SNMPUSER1
 if [ -n "$SNMPUSER1USRNAME" ] && [ -n "$SNMPUSER1ENGINID" ]
@@ -66,6 +71,7 @@ then
     echo "authUser log,execute,net $SNMPUSER5USRNAME noauth" >> /etc/snmp/snmptrapd.conf
 fi
 
+# Start snmp services
 service snmpd stop
 service snmptrapd stop
 service snmpd start
@@ -73,7 +79,29 @@ service snmptrapd start
 service snmpd status
 service snmptrapd status
 
-frontail -d -p $HTTPPORT /var/log/snmp/snmptrapd.log
+# Create logs folder and init files
+mkdir -p /opt/"$APPNAME"/logs
+touch /opt/"$APPNAME"/logs/"$APPNAME".log
+truncate -s 0 /opt/"$APPNAME"/logs/"$APPNAME".log
+echo "$(date -Is) [Start of $APPNAME log file]" >> /opt/"$APPNAME"/logs/"$APPNAME".log
+
+# Start web interface
+NLINES=1000
+cp /opt/"$APPNAME"/scripts/tmux.conf /root/.tmux.conf
+sed -Ei 's/tail -n 500/tail -n '"$NLINES"'/' /opt/"$APPNAME"/scripts/tail.sh
+# ttyd tail with color and read only
+nohup ttyd -p "$HTTPPORT1" -R -t titleFixed="${APPNAME}|${APPNAME}.log" -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tail.sh >> /opt/"$APPNAME"/logs/ttyd1.log 2>&1 &
+# ttyd tail without color and read only
+#nohup ttyd -p "$HTTPPORT1" -R -t titleFixed="${APPNAME}|${APPNAME}.log" -T xterm-mono -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tail.sh >> /opt/"$APPNAME"/logs/ttyd1.log 2>&1 &
+sed -Ei 's/tail -n 500/tail -n '"$NLINES"'/' /opt/"$APPNAME"/scripts/tmux.sh
+# ttyd tmux with color
+nohup ttyd -p "$HTTPPORT2" -t titleFixed="${APPNAME}|${APPNAME}.log" -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tmux.sh >> /opt/"$APPNAME"/logs/ttyd2.log 2>&1 &
+# ttyd tmux without color
+#nohup ttyd -p "$HTTPPORT2" -t titleFixed="${APPNAME}|${APPNAME}.log" -T xterm-mono -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tmux.sh >> /opt/"$APPNAME"/logs/ttyd2.log 2>&1 &
+nohup frontail -n "$NLINES" -p "$HTTPPORT3" /var/log/snmp/snmptrapd.log >> /opt/"$APPNAME"/logs/frontail.log 2>&1 &
+sed -Ei 's/\$lines/'"$NLINES"'/' /opt/"$APPNAME"/scripts/tailon.toml
+sed -Ei '/^listen-addr = /c listen-addr = [":'"$HTTPPORT4"'"]' /opt/"$APPNAME"/scripts/tailon.toml
+nohup tailon -c /opt/"$APPNAME"/scripts/tailon.toml /var/log/snmp/snmptrapd.log /opt/"$APPNAME"/logs/ttyd1.log /opt/"$APPNAME"/logs/ttyd2.log /opt/"$APPNAME"/logs/frontail.log /opt/"$APPNAME"/logs/tailon.log >> /opt/"$APPNAME"/logs/tailon.log 2>&1 &
 
 # Keep docker running
 bash

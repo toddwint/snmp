@@ -2,24 +2,37 @@
 
 ## Info
 
-<https://hub.docker.com/r/toddwint/snmp>
+`snmp` docker image for simple lab testing applications.
 
-<https://github.com/toddwint/snmp>
+Docker Hub: <https://hub.docker.com/r/toddwint/snmp>
 
-SNMP server docker image for simple lab SNMP testing.
-
-This image was created for lab setups where the need to verify SNMP messages are being sent to a customer owned SNMP server.
+GitHub: <https://github.com/toddwint/snmp>
 
 
 ## Features
 
-- Receive SNMP messages from clients.
-- View remote SNMP messages in a web browser ([frontail](https://github.com/mthenw/frontail))
-    - tail the file
-    - pause the flow
-    - search through the flow
-    - highlight multiple rows
-- SNMP messages are persistent if you map the directory `/var/log/snmp `
+- Ubuntu base image
+- Plus:
+  - snmp-mibs-downloader
+  - snmptrapd
+  - snmp
+  - libsnmp-dev
+  - tmux
+  - python3-minimal
+  - iproute2
+  - tzdata
+  - [ttyd](https://github.com/tsl0922/ttyd)
+    - View the terminal in your browser
+  - [frontail](https://github.com/mthenw/frontail)
+    - View logs in your browser
+    - Mark/Highlight logs
+    - Pause logs
+    - Filter logs
+  - [tailon](https://github.com/gvalkov/tailon)
+    - View multiple logs and files in your browser
+    - User selectable `tail`, `grep`, `sed`, and `awk` commands
+    - Filter logs and files
+    - Download logs to your computer
 
 
 ## Sample `config.txt` file
@@ -27,8 +40,6 @@ This image was created for lab setups where the need to verify SNMP messages are
 ```
 TZ=UTC
 IPADDR=127.0.0.1
-HTTPPORT=9001
-HOSTNAME=snmpsrvr
 SNMPUSER1ENGINID=0x0102030405
 SNMPUSER1USRNAME=user1
 SNMPUSER1AUTHALG=SHA
@@ -59,27 +70,36 @@ SNMPUSER5AUTHALG=SHA
 SNMPUSER5AUTHPHR=authphrase5
 SNMPUSER5PRIVALG=AES
 SNMPUSER5PRIVPHR=privacyphrase5
+HTTPPORT1=8080
+HTTPPORT2=8081
+HTTPPORT3=8082
+HTTPPORT4=8083
+HOSTNAME=snmpsrvr01
 ```
 
-## Sample docker run command
+
+## Sample docker run script
 
 ```
 #!/usr/bin/env bash
-source config.txt
-cp template/webadmin.html.template webadmin.html
-sed -i "s/IPADDR/$IPADDR:$HTTPPORT/g" webadmin.html
-docker run -dit --rm \
-    --name snmp \
-    -h $HOSTNAME \
+REPO=toddwint
+APPNAME=snmp
+source "$(dirname "$(realpath $0)")"/config.txt
+
+# Create the docker container
+docker run -dit \
+    --name "$HOSTNAME" \
+    -h "$HOSTNAME" \
+    -v "$HOSTNAME":/opt/"$APPNAME"/logs \
     -p $IPADDR:161:161/udp \
     -p $IPADDR:161:161/tcp \
     -p $IPADDR:162:162/udp \
     -p $IPADDR:162:162/tcp \
-    -p $IPADDR:$HTTPPORT:$HTTPPORT \
-    -v snmp:/var/log/snmp \
-    -e TZ=$TZ \
-    -e HTTPPORT=$HTTPPORT \
-    -e HOSTNAME=$HOSTNAME \
+    -p "$IPADDR":"$HTTPPORT1":"$HTTPPORT1" \
+    -p "$IPADDR":"$HTTPPORT2":"$HTTPPORT2" \
+    -p "$IPADDR":"$HTTPPORT3":"$HTTPPORT3" \
+    -p "$IPADDR":"$HTTPPORT4":"$HTTPPORT4" \
+    -e TZ="$TZ" \
     -e SNMPUSER1ENGINID=$SNMPUSER1ENGINID \
     -e SNMPUSER1USRNAME=$SNMPUSER1USRNAME \
     -e SNMPUSER1AUTHALG=$SNMPUSER1AUTHALG \
@@ -110,22 +130,27 @@ docker run -dit --rm \
     -e SNMPUSER5AUTHPHR=$SNMPUSER5AUTHPHR \
     -e SNMPUSER5PRIVALG=$SNMPUSER5PRIVALG \
     -e SNMPUSER5PRIVPHR=$SNMPUSER5PRIVPHR \
-    --cap-add=NET_ADMIN \
-    toddwint/snmp
+    -e HTTPPORT1="$HTTPPORT1" \
+    -e HTTPPORT2="$HTTPPORT2" \
+    -e HTTPPORT3="$HTTPPORT3" \
+    -e HTTPPORT4="$HTTPPORT4" \
+    -e HOSTNAME="$HOSTNAME" \
+    -e APPNAME="$APPNAME" \
+    ${REPO}/${APPNAME}
 ```
-
-## Sample webadmin.html.template file
-
-See my github page (referenced above).
 
 
 ## Login page
 
 Open the `webadmin.html` file.
 
-Or just type in your browser `http://<ip_address>:<port>`
+- Or just type in your browser: 
+  - `http://<ip_address>:<port1>` or
+  - `http://<ip_address>:<port2>` or
+  - `http://<ip_address>:<port3>`
+  - `http://<ip_address>:<port4>`
 
 
 ## Issues?
 
-Make sure if you set an IP that machine has the same IP configured on an interface.
+Make sure to set the IP on the host and that the ports being used are not currently being used by the host.
