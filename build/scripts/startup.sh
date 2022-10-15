@@ -11,10 +11,9 @@ gunzip /usr/local/bin/frontail.gz
 gunzip /usr/local/bin/tailon.gz
 
 # Configure snmp
-sed -Ei "s/^(mibs *:).*/#\1/" /etc/snmp/snmp.conf 
-sed -Ei "s/^(agentaddress).*/\1  0.0.0.0,[::]/" /etc/snmp/snmpd.conf 
-sed -Ei "s/^#(authCommunity.*public.*)/\1/" /etc/snmp/snmptrapd.conf 
-sed -Ei '$a[snmp] logOption f /var/log/snmp/snmptrapd.log' /etc/snmp/snmptrapd.conf
+cp /opt/"$APPNAME"/scripts/snmp.conf /etc/snmp/snmp.conf
+cp /opt/"$APPNAME"/scripts/snmpd.conf /etc/snmp/snmpd.conf
+cp /opt/"$APPNAME"/scripts/snmptrapd.conf /etc/snmp/snmptrapd.conf
 
 # SNMPUSER1
 if [ -n "$SNMPUSER1USRNAME" ] && [ -n "$SNMPUSER1ENGINID" ]
@@ -79,6 +78,11 @@ service snmptrapd start
 service snmpd status
 service snmptrapd status
 
+# Link the log to the app log
+mkdir -p /opt/"$APPNAME"/logs
+#ln -s /var/log/snmp/snmptrapd.log /opt/"$APPNAME"/logs/"$APPNAME".log
+ln /var/log/snmp/snmptrapd.log /opt/"$APPNAME"/logs/"$APPNAME".log
+
 # Create logs folder and init files
 mkdir -p /opt/"$APPNAME"/logs
 touch /opt/"$APPNAME"/logs/"$APPNAME".log
@@ -98,10 +102,10 @@ sed -Ei 's/tail -n 500/tail -n '"$NLINES"'/' /opt/"$APPNAME"/scripts/tmux.sh
 nohup ttyd -p "$HTTPPORT2" -t titleFixed="${APPNAME}|${APPNAME}.log" -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tmux.sh >> /opt/"$APPNAME"/logs/ttyd2.log 2>&1 &
 # ttyd tmux without color
 #nohup ttyd -p "$HTTPPORT2" -t titleFixed="${APPNAME}|${APPNAME}.log" -T xterm-mono -t fontSize=18 -t 'theme={"foreground":"black","background":"white", "selection":"red"}' /opt/"$APPNAME"/scripts/tmux.sh >> /opt/"$APPNAME"/logs/ttyd2.log 2>&1 &
-nohup frontail -n "$NLINES" -p "$HTTPPORT3" /var/log/snmp/snmptrapd.log >> /opt/"$APPNAME"/logs/frontail.log 2>&1 &
+nohup frontail -n "$NLINES" -p "$HTTPPORT3" /opt/"$APPNAME"/logs/"$APPNAME".log >> /opt/"$APPNAME"/logs/frontail.log 2>&1 &
 sed -Ei 's/\$lines/'"$NLINES"'/' /opt/"$APPNAME"/scripts/tailon.toml
 sed -Ei '/^listen-addr = /c listen-addr = [":'"$HTTPPORT4"'"]' /opt/"$APPNAME"/scripts/tailon.toml
-nohup tailon -c /opt/"$APPNAME"/scripts/tailon.toml /var/log/snmp/snmptrapd.log /opt/"$APPNAME"/logs/ttyd1.log /opt/"$APPNAME"/logs/ttyd2.log /opt/"$APPNAME"/logs/frontail.log /opt/"$APPNAME"/logs/tailon.log >> /opt/"$APPNAME"/logs/tailon.log 2>&1 &
+nohup tailon -c /opt/"$APPNAME"/scripts/tailon.toml /opt/"$APPNAME"/logs/"$APPNAME".log /opt/"$APPNAME"/logs/ttyd1.log /opt/"$APPNAME"/logs/ttyd2.log /opt/"$APPNAME"/logs/frontail.log /opt/"$APPNAME"/logs/tailon.log >> /opt/"$APPNAME"/logs/tailon.log 2>&1 &
 
 # Keep docker running
 bash

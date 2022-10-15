@@ -7,7 +7,6 @@ source "$(dirname "$(realpath $0)")"/config.txt
 docker run -dit \
     --name "$HOSTNAME" \
     -h "$HOSTNAME" \
-    -v "$HOSTNAME":/opt/"$APPNAME"/logs \
     -p $IPADDR:161:161/udp \
     -p $IPADDR:161:161/tcp \
     -p $IPADDR:162:162/udp \
