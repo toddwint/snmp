@@ -38,8 +38,23 @@ GitHub: <https://github.com/toddwint/snmp>
 ## Sample `config.txt` file
 
 ```
+# To get a list of timezones view the files in `/usr/share/zoneinfo`
 TZ=UTC
-IPADDR=127.0.0.1
+
+# The interface on which to set the IP. Run `ip -br a` to see a list
+INTERFACE=eth0
+
+# The IP address that will be set on the host and NAT'd to the container
+IPADDR=192.168.10.1
+
+# The IP subnet in the form subnet/cidr
+SUBNET=192.168.10.0/24
+
+# SNMP user details (up to 5 users)
+# The ENGINE ID of the remote SNMP device
+# The username
+# The authentication phrase and hash algorithm
+# The privacy phrase and encryption algorithm
 SNMPUSER1ENGINID=0x0102030405
 SNMPUSER1USRNAME=user1
 SNMPUSER1AUTHALG=SHA
@@ -70,11 +85,16 @@ SNMPUSER5AUTHALG=SHA
 SNMPUSER5AUTHPHR=authphrase5
 SNMPUSER5PRIVALG=AES
 SNMPUSER5PRIVPHR=privacyphrase5
+
+# The ports for web management access of the docker container.
+# ttyd tail, ttyd tmux, frontail, and tmux respectively
 HTTPPORT1=8080
 HTTPPORT2=8081
 HTTPPORT3=8082
 HTTPPORT4=8083
-HOSTNAME=snmpsrvr01
+
+# The hostname of the instance of the docker container
+HOSTNAME=snmp01
 ```
 
 
@@ -85,6 +105,15 @@ HOSTNAME=snmpsrvr01
 REPO=toddwint
 APPNAME=snmp
 source "$(dirname "$(realpath $0)")"/config.txt
+
+# Set the IP on the interface
+IPASSIGNED=$(ip addr show $INTERFACE | grep $IPADDR)
+if [ -z "$IPASSIGNED" ]; then
+   SETIP="$IPADDR/$(echo $SUBNET | awk -F/ '{print $2}')" 
+   sudo ip addr add $SETIP dev $INTERFACE
+else
+    echo 'IP is already assigned to the interface'
+fi
 
 # Create the docker container
 docker run -dit \
@@ -148,8 +177,3 @@ Open the `webadmin.html` file.
   - `http://<ip_address>:<port2>` or
   - `http://<ip_address>:<port3>`
   - `http://<ip_address>:<port4>`
-
-
-## Issues?
-
-Make sure to set the IP on the host and that the ports being used are not currently being used by the host.

@@ -1,5 +1,5 @@
 FROM toddwint/mybaseimage
-COPY scripts /opt/snmp/scripts
+COPY app /opt/snmp
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     SNMPUSER1ENGINID=0x0102030405 \
@@ -52,12 +52,8 @@ RUN apt-get update \
     && \
     mkdir /var/log/snmp \
     && \
-    cd /opt \
-    && \
-    rm -rf /opt/mybaseimage \
-    && \
     apt-get autoremove -y \
     && \
     rm -rf /var/lib/apt/lists/*
-WORKDIR /opt/snmp/scripts
+WORKDIR /opt/snmp/debug
 CMD ["/opt/snmp/scripts/startup.sh"]

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -x
+snmptrap -v 3 -n \"\" -a $SNMPUSER1AUTHALG -A $SNMPUSER1AUTHPHR -x $SNMPUSER1PRIVALG -X $SNMPUSER1PRIVPHR -l authPriv -u $SNMPUSER1USRNAME -e $SNMPUSER1ENGINID 127.0.0.1 0 linkUp.0
