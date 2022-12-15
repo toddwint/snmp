@@ -11,13 +11,20 @@ if [ -e /opt/"$APPNAME"/scripts/.firstrun ]; then
     # Unzip frontail and tailon
     gunzip /usr/local/bin/frontail.gz
     gunzip /usr/local/bin/tailon.gz
+
+    # Copy python scripts to /usr/local/bin and make executable
+    cp /opt/"$APPNAME"/scripts/add_snmp_users.py /usr/local/bin
+    cp /opt/"$APPNAME"/scripts/send_test_trap.py /usr/local/bin
+    chmod 755 /usr/local/bin/add_snmp_users.py
+    chmod 755 /usr/local/bin/send_test_trap.py
 fi
 
 # Link scripts to debug folder as needed
 if [ -e /opt/"$APPNAME"/scripts/.firstrun ]; then
     ln -s /opt/"$APPNAME"/scripts/tail.sh /opt/"$APPNAME"/debug
     ln -s /opt/"$APPNAME"/scripts/tmux.sh /opt/"$APPNAME"/debug
-    ln -s /opt/"$APPNAME"/scripts/send_test_trap.sh /opt/"$APPNAME"/debug
+    ln -s /opt/"$APPNAME"/scripts/send_test_trap.py /opt/"$APPNAME"/debug
+    ln -s /opt/"$APPNAME"/scripts/add_snmp_users.py /opt/"$APPNAME"/debug
 fi
 
 # Create the file /var/run/utmp or when using tmux this error will be received
@@ -39,68 +46,29 @@ fi
 # Print first message to either the app log file or syslog
 echo "$(date -Is) [Start of $APPNAME log file]" >> /opt/"$APPNAME"/logs/"$APPNAME".log
 
+# Check if `upload` subfolder exists. If non-existing, create it .
+# Checking for a file inside the folder because if the folder
+#  is mounted as a volume it will already exists when docker starts.
+# Also change permissions
+if [ ! -e "/opt/$APPNAME/upload/.exists" ]
+then
+    mkdir -p /opt/"$APPNAME"/upload
+    touch /opt/"$APPNAME"/upload/.exists
+    echo '`upload` folder created'
+    cp /opt/"$APPNAME"/configs/snmp_users.csv /opt/"$APPNAME"/upload
+    chown -R "${HUID}":"${HGID}" /opt/"$APPNAME"/upload
+fi
+
 # Modify configuration files or customize container
 if [ -e /opt/"$APPNAME"/scripts/.firstrun ]; then
     # Configure snmp
     cp /opt/"$APPNAME"/configs/snmp.conf /etc/snmp/snmp.conf
     cp /opt/"$APPNAME"/configs/snmpd.conf /etc/snmp/snmpd.conf
     cp /opt/"$APPNAME"/configs/snmptrapd.conf /etc/snmp/snmptrapd.conf
-
-    # SNMPUSER1
-    if [ -n "$SNMPUSER1USRNAME" ] && [ -n "$SNMPUSER1ENGINID" ]
-    then
-       echo "createUser -e $SNMPUSER1ENGINID $SNMPUSER1USRNAME $SNMPUSER1AUTHALG $SNMPUSER1AUTHPHR $SNMPUSER1PRIVALG $SNMPUSER1PRIVPHR" >> /etc/snmp/snmptrapd.conf
-       echo "authUser log,execute,net $SNMPUSER1USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    elif [ -n "$SNMPUSER1USRNAME" ]
-    then
-        echo "createUser $SNMPUSER1USRNAME $SNMPUSER1AUTHALG $SNMPUSER1AUTHPHR $SNMPUSER1PRIVALG $SNMPUSER1PRIVPHR" >> /etc/snmp/snmptrapd.conf
-        echo "authUser log,execute,net $SNMPUSER1USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    fi
-
-    # SNMPUSER2
-    if [ -n "$SNMPUSER2USRNAME" ] && [ -n "$SNMPUSER2ENGINID" ]
-    then
-       echo "createUser -e $SNMPUSER2ENGINID $SNMPUSER2USRNAME $SNMPUSER2AUTHALG $SNMPUSER2AUTHPHR $SNMPUSER2PRIVALG $SNMPUSER2PRIVPHR" >> /etc/snmp/snmptrapd.conf
-       echo "authUser log,execute,net $SNMPUSER2USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    elif [ -n "$SNMPUSER2USRNAME" ]
-    then
-        echo "createUser $SNMPUSER2USRNAME $SNMPUSER2AUTHALG $SNMPUSER2AUTHPHR $SNMPUSER2PRIVALG $SNMPUSER2PRIVPHR" >> /etc/snmp/snmptrapd.conf
-        echo "authUser log,execute,net $SNMPUSER2USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    fi
-
-    # SNMPUSER3
-    if [ -n "$SNMPUSER3USRNAME" ] && [ -n "$SNMPUSER3ENGINID" ]
-    then
-       echo "createUser -e $SNMPUSER3ENGINID $SNMPUSER3USRNAME $SNMPUSER3AUTHALG $SNMPUSER3AUTHPHR $SNMPUSER3PRIVALG $SNMPUSER3PRIVPHR" >> /etc/snmp/snmptrapd.conf
-       echo "authUser log,execute,net $SNMPUSER3USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    elif [ -n "$SNMPUSER3USRNAME" ]
-    then
-        echo "createUser $SNMPUSER3USRNAME $SNMPUSER3AUTHALG $SNMPUSER3AUTHPHR $SNMPUSER3PRIVALG $SNMPUSER3PRIVPHR" >> /etc/snmp/snmptrapd.conf
-        echo "authUser log,execute,net $SNMPUSER3USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    fi
-
-    # SNMPUSER4
-    if [ -n "$SNMPUSER4USRNAME" ] && [ -n "$SNMPUSER4ENGINID" ]
-    then
-       echo "createUser -e $SNMPUSER4ENGINID $SNMPUSER4USRNAME $SNMPUSER4AUTHALG $SNMPUSER4AUTHPHR $SNMPUSER4PRIVALG $SNMPUSER4PRIVPHR" >> /etc/snmp/snmptrapd.conf
-       echo "authUser log,execute,net $SNMPUSER4USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    elif [ -n "$SNMPUSER4USRNAME" ]
-    then
-        echo "createUser $SNMPUSER4USRNAME $SNMPUSER4AUTHALG $SNMPUSER4AUTHPHR $SNMPUSER4PRIVALG $SNMPUSER4PRIVPHR" >> /etc/snmp/snmptrapd.conf
-        echo "authUser log,execute,net $SNMPUSER4USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    fi
-
-    # SNMPUSER5
-    if [ -n "$SNMPUSER5USRNAME" ] && [ -n "$SNMPUSER5ENGINID" ]
-    then
-       echo "createUser -e $SNMPUSER5ENGINID $SNMPUSER5USRNAME $SNMPUSER5AUTHALG $SNMPUSER5AUTHPHR $SNMPUSER5PRIVALG $SNMPUSER5PRIVPHR" >> /etc/snmp/snmptrapd.conf
-       echo "authUser log,execute,net $SNMPUSER5USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    elif [ -n "$SNMPUSER5USRNAME" ]
-    then
-        echo "createUser $SNMPUSER5USRNAME $SNMPUSER5AUTHALG $SNMPUSER5AUTHPHR $SNMPUSER5PRIVALG $SNMPUSER5PRIVPHR" >> /etc/snmp/snmptrapd.conf
-        echo "authUser log,execute,net $SNMPUSER5USRNAME noauth" >> /etc/snmp/snmptrapd.conf
-    fi
 fi
+
+# Run the python script to add all the snmptrap users
+add_snmp_users.py >> /opt/"$APPNAME"/logs/"$APPNAME".log
 
 # Start services
 # Start snmp services

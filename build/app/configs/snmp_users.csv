@@ -1,0 +1,5 @@
+engine id,username,auth alg,auth passphrase,privacy alg,privacy passphrase
+0x0102030405,user1,SHA,authphrase1,AES,privacyphrase1
+0x0203040506,user2,SHA,authphrase2,AES,privacyphrase2
+0x0304050607,user3,SHA,authphrase3,AES,privacyphrase3
+0x0405060708,user4,SHA,authphrase4,AES,privacyphrase4
