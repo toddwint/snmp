@@ -24,7 +24,6 @@ if [ -e /opt/"$APPNAME"/scripts/.firstrun ]; then
     ln -s /opt/"$APPNAME"/scripts/tail.sh /opt/"$APPNAME"/debug
     ln -s /opt/"$APPNAME"/scripts/tmux.sh /opt/"$APPNAME"/debug
     ln -s /opt/"$APPNAME"/scripts/send_test_trap.py /opt/"$APPNAME"/debug
-    ln -s /opt/"$APPNAME"/scripts/add_snmp_users.py /opt/"$APPNAME"/debug
 fi
 
 # Create the file /var/run/utmp or when using tmux this error will be received

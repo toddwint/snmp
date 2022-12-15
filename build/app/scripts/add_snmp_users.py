@@ -48,19 +48,19 @@ snmpusers = csvlist[1:]
 engineid, user, authalg, authphr, privalg, privphr = 0, 1, 2, 3, 4, 5
 snmptrapdconf = pathlib.Path('/etc/snmp/snmptrapd.conf')
 snmptrapdtmpl = pathlib.Path(f'/opt/{appname}/configs/snmptrapd.conf')
-snmptrapdconf.write_text(snmptrapdtmpl.read_text())
+snmpcfg = snmptrapdtmpl.read_text()
 
 for snmpuser in snmpusers:
     if snmpuser[user] and snmpuser[engineid]:
-        with open('/etc/snmp/snmptrapd.conf', 'a') as f:
-            f.write(f'createUser -e {snmpuser[engineid]} {snmpuser[user]} \
+        snmpcfg += f'createUser -e {snmpuser[engineid]} {snmpuser[user]} \
 {snmpuser[authalg]} {snmpuser[authphr]} {snmpuser[privalg]} \
-{snmpuser[privphr]}' '\n')
-            f.write(f'authUser log,execute,net {snmpuser[user]} noauth' '\n')
+{snmpuser[privphr]}' '\n'
+        snmpcfg += f'authUser log,execute,net {snmpuser[user]} noauth' '\n'
     elif snmpuser[user]:
-        with open('/etc/snmp/snmptrapd.conf', 'a') as f:
-            f.write(f'createUser {snmpuser[user]} {snmpuser[authalg]} \
-{snmpuser[authphr]} {snmpuser[privalg]} {snmpuser[privphr]}' '\n')
-            f.write(f'authUser log,execute,net {snmpuser[user]} noauth' '\n')
+        snmpcfg += f'createUser {snmpuser[user]} {snmpuser[authalg]} \
+{snmpuser[authphr]} {snmpuser[privalg]} {snmpuser[privphr]}' '\n'
+        snmpcfg += f'authUser log,execute,net {snmpuser[user]} noauth' '\n'
+
+snmptrapdconf.write_text(snmpcfg)
 
 print('Done!')
