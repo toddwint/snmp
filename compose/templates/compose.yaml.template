@@ -1,0 +1,36 @@
+name: ${HOSTNAME}
+
+services:
+  snmp:
+    image: toddwint/snmp
+    hostname: ${HOSTNAME}
+    ports:
+        - "${IPADDR}:161:161/udp"
+        - "${IPADDR}:161:161/tcp"
+        - "${IPADDR}:162:162/udp"
+        - "${IPADDR}:162:162/tcp"
+        - "${IPADDR}:${HTTPPORT1}:${HTTPPORT1}"
+        - "${IPADDR}:${HTTPPORT2}:${HTTPPORT2}"
+        - "${IPADDR}:${HTTPPORT3}:${HTTPPORT3}"
+        - "${IPADDR}:${HTTPPORT4}:${HTTPPORT4}"
+    networks:
+        default:
+            ipv4_address: ${IPADDR}
+    environment:
+        - HUID=${HUID}
+        - HGID=${HGID}
+        - HOSTNAME=${HOSTNAME}
+        - TZ=${TZ}
+        - HTTPPORT1=${HTTPPORT1}
+        - HTTPPORT2=${HTTPPORT2}
+        - HTTPPORT3=${HTTPPORT3}
+        - HTTPPORT4=${HTTPPORT4}
+        - APPNAME=${APPNAME}
+    volumes:
+      - "${PWD}/upload:/opt/${APPNAME}/upload"
+    tty: true
+
+networks:
+    default:
+        name: "${INTERFACE}-macvlan"
+        external: true
