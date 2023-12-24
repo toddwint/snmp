@@ -1,0 +1,98 @@
+[
+ [
+  "Launch tmux",
+  "/opt/snmp/scripts/tmux.sh"
+ ],
+ [
+  "Search logs",
+  [
+   [
+    "snmp log (/var/log/snmp/snmptrapd.log)",
+    "tail -F -n +1 /opt/snmp/logs/snmp.log | fzf --tac --no-sort"
+   ]
+  ]
+ ],
+ [
+  "View logs",
+  [
+   [
+    "snmp log (/var/log/snmp/snmptrapd.log)",
+    "more /opt/snmp/logs/snmp.log"
+   ]
+  ]
+ ],
+ [
+  "View configuration",
+  [
+   [
+    "snmp_users.csv",
+    "column.py /opt/snmp/upload/snmp_users.csv | more"
+   ],
+   [
+    "snmp.conf",
+    "more /etc/snmp/snmp.conf"
+   ],
+   [
+    "snmpd.conf",
+    "more /etc/snmp/snmpd.conf"
+   ],
+   [
+    "snmptrapd.conf",
+    "more /etc/snmp/snmptrapd.conf"
+   ],
+   [
+    "IP addresses",
+    "ip addr show | more"
+   ],
+   [
+    "Routing table",
+    "ip route show | more"
+   ],
+   [
+    "ARP or NDISC cache",
+    "ip neighbor show | more"
+   ],
+   [
+    "Network devices",
+    "ip link show | more"
+   ]
+  ]
+ ],
+ [
+  "Debug scripts",
+  [
+   [
+    "Send test snmp trap",
+    "/opt/snmp/debug/send_test_trap.py"
+   ],
+   [
+    "Add SNMP users from snmp_users.csv",
+    "add_snmp_users.py"
+   ],
+   [
+    "Show processes",
+    "ps ax | more"
+   ],
+   [
+    "Show sockets",
+    "ss --all --numeric --processes | more"
+   ],
+   [
+    "ttyd1 log",
+    "more /opt/snmp/logs/ttyd1.log"
+   ],
+   [
+    "ttyd2 log",
+    "more /opt/snmp/logs/ttyd2.log"
+   ],
+   [
+    "frontail log",
+    "more /opt/snmp/logs/frontail.log"
+   ],
+   [
+    "tailon log",
+    "more /opt/snmp/logs/tailon.log"
+   ]
+  ]
+ ]
+]
