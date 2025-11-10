@@ -2,7 +2,7 @@ name: ${HOSTNAME}
 
 services:
   snmp:
-    image: toddwint/snmp
+    image: toddwint/${APPNAME}
     hostname: ${HOSTNAME}
     ports:
         - "${IPADDR}:161:161/udp"
